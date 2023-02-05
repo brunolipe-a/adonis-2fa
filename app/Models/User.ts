@@ -48,6 +48,20 @@ export default class User extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
+  public removeRecoveryCode(code: string) {
+    const index = this.twoFactorRecoveryCodes.indexOf(code)
+
+    const isNotInTheList = index < 0
+
+    if (isNotInTheList) {
+      return this
+    }
+
+    this.twoFactorRecoveryCodes.splice(index, 1)
+
+    return this
+  }
+
   @beforeSave()
   public static async hashPassword(user: User) {
     if (user.$dirty.password) {

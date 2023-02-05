@@ -3,6 +3,11 @@ import * as twoFactor from 'node-2fa'
 import { TwoFactorAuthConfig } from '@ioc:Adonis/Addons/TwoFactorAuth'
 import { string } from '@ioc:Adonis/Core/Helpers'
 
+type VerifyTokenResult = {
+  isValid: boolean
+  usesRecoveryCode: boolean
+}
+
 export class TwoFactorAuthManager {
   constructor(private config: TwoFactorAuthConfig) {}
 
@@ -17,15 +22,19 @@ export class TwoFactorAuthManager {
     return Array.from({ length: 16 }, () => string.generateRandom(10).toUpperCase())
   }
 
-  public verifyToken(secret: string = '', token: string, recoveryCodes: string[] = []) {
+  public verifyToken(
+    secret: string = '',
+    token: string,
+    recoveryCodes: string[] = []
+  ): VerifyTokenResult {
     const verifyResult = twoFactor.verifyToken(secret, token)
 
     if (!verifyResult) {
-      const isSecretInRecoveryCodes = recoveryCodes.includes(token)
+      const isTokenInRecoveryCodes = recoveryCodes.includes(token)
 
-      return isSecretInRecoveryCodes
+      return { isValid: isTokenInRecoveryCodes, usesRecoveryCode: isTokenInRecoveryCodes }
     }
 
-    return verifyResult.delta === 0 // Valida token atual, não permitindo token já expirado ou token futuro
+    return { isValid: verifyResult.delta === 0, usesRecoveryCode: false } // Valida token atual, não permitindo token já expirado ou token futuro
   }
 }

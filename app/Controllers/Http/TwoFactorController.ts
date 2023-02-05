@@ -29,7 +29,7 @@ export default class TwoFactorController {
       return response.badRequest({ message: 'Usuário já cadastrado com 2FA' })
     }
 
-    const isValid = TwoFactorAuth.verifyToken(user.twoFactorSecret?.secret, otp)
+    const { isValid } = TwoFactorAuth.verifyToken(user.twoFactorSecret?.secret, otp)
 
     if (!isValid) {
       return response.badRequest({ message: 'OTP inválido' })

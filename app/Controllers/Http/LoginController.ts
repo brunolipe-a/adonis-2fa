@@ -29,14 +29,18 @@ export default class LoginController {
       })
     }
 
-    const isOTPValid = TwoFactorAuth.verifyToken(
+    const { isValid: isOTPValid, usesRecoveryCode } = TwoFactorAuth.verifyToken(
       user.twoFactorSecret?.secret,
       otp,
       user.twoFactorRecoveryCodes
     )
 
     if (!isOTPValid) {
-      return response.unauthorized({ message: 'Credenciais inválidas' })
+      return response.unauthorized({ message: 'OTP inválido' })
+    }
+
+    if (usesRecoveryCode) {
+      await user.removeRecoveryCode(otp).save()
     }
 
     const { token } = await auth.use('api').generate(user)
