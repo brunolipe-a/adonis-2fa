@@ -1,10 +1,20 @@
 import { DateTime } from 'luxon'
 import Hash from '@ioc:Adonis/Core/Hash'
 import { column, beforeSave, BaseModel } from '@ioc:Adonis/Lucid/Orm'
+import Encryption from '@ioc:Adonis/Core/Encryption'
+
+type TwoFactorSecret = {
+  uri: string
+  secret: string
+  qr: string
+}
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
   public id: number
+
+  @column()
+  public name: string
 
   @column()
   public email: string
@@ -14,6 +24,23 @@ export default class User extends BaseModel {
 
   @column()
   public rememberMeToken: string | null
+
+  @column({ consume: (value) => Boolean(value) })
+  public isTwoFactorEnabled: boolean = false
+
+  @column({
+    serializeAs: null,
+    consume: (value: string) => (value ? JSON.parse(Encryption.decrypt(value) ?? '{}') : null),
+    prepare: (value: string) => Encryption.encrypt(JSON.stringify(value)),
+  })
+  public twoFactorSecret: TwoFactorSecret | null
+
+  @column({
+    serializeAs: null,
+    consume: (value: string) => (value ? JSON.parse(Encryption.decrypt(value) ?? '[]') : []),
+    prepare: (value: string[]) => Encryption.encrypt(JSON.stringify(value)),
+  })
+  public twoFactorRecoveryCodes: string[]
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

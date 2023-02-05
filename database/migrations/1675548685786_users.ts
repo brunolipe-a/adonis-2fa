@@ -6,9 +6,15 @@ export default class extends BaseSchema {
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').primary()
+      table.string('name').notNullable()
       table.string('email', 255).notNullable().unique()
       table.string('password', 180).notNullable()
       table.string('remember_me_token').nullable()
+
+      table.boolean('is_two_factor_enabled').defaultTo(false)
+
+      table.text('two_factor_secret').nullable()
+      table.text('two_factor_recovery_codes').nullable()
 
       /**
        * Uses timestampz for PostgreSQL and DATETIME2 for MSSQL
